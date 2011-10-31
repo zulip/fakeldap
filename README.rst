@@ -40,6 +40,11 @@ The easiest way to use it, is to overwrite ``ldap.initialize`` to return
 ``MockLDAP`` instead of ``LDAPObject``. The example below uses Michael Foord's
 Mock_ library to achieve that::
 
+    import unittest
+    from mock import patch
+    from fakeldap import MockLDAP
+
+
     _mock_ldap = MockLDAP()
 
     class YourTestCase(unittest.TestCase):
@@ -106,5 +111,35 @@ This is an example how to use ``MockLDAP`` with fixed return values::
 
         # And again test the expected behaviour
         eq_(called_records, _mock_ldap.ldap_methods_called_with_arguments())
+
+Besides of fixing return values for specific calls, you can also imitate a full
+ldap server with a directory of entries::
+
+    # Create an instance of MockLDAP with a preset directory
+    tree = {
+        "cn=admin,dc=30loops,dc=net": {
+                "userPassword": "ldaptest"
+        }
+    }
+    mock_ldap = MockLDAP(tree) 
+
+    record = [
+        ('uid', 'crito'),
+        ('userPassword', 'secret'),
+    ]
+    # The return value I expect when I add another record to the directory
+    eq_(
+        (105,[],1,[]),
+        mock_ldap.add_s("uid=crito,ou=people,dc=30loops,dc=net", record)
+    )
+
+    # The expected directory
+    directory = {
+        "cn=admin,dc=30loops,dc=net": {"userPassword": "ldaptest"},
+        "uid=crito,ou=people,dc=30loops,dc=net": {
+            "uid": "crito", "userPassword": "secret"}
+    }
+    # Compare the expected directory with the MockLDAP directory
+    eq_(directory, mock_ldap.directory)
 
 .. _Mock: http://www.voidspace.org.uk/python/mock/
