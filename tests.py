@@ -4,7 +4,7 @@ from fakeldap import MockLDAP
 import unittest
 
 
-tree = {
+directory = {
     "cn=admin,dc=30loops,dc=net": {
             "userPassword": "ldaptest"
             }
@@ -13,7 +13,25 @@ tree = {
 
 class TestLdapOperations(unittest.TestCase):
     def setUp(self):
-        self.mock_ldap = MockLDAP(tree)
+        self.mock_ldap = MockLDAP(directory)
+
+    def tearDown(self):
+        self.mock_ldap.reset()
+
+    def test_simple_bind_s_operation(self):
+        """Try to bind a user."""
+        # Make a valid bind
+        eq_(
+            (97,[]),
+            self.mock_ldap.simple_bind_s("cn=admin,dc=30loops,dc=net", "ldaptest")
+        )
+
+        # Supply the wrong password
+        assert_raises(
+            MockLDAP.INVALID_CREDENTIALS,
+            self.mock_ldap.simple_bind_s,
+            who="cn=admin,dc=30loops,dc=net", cred="wrong"
+        )
 
     def test_add_s_operation(self):
         """Test the addition of records to the mock ldap object."""
