@@ -1,0 +1,9 @@
+.coverage
+cover
+dist
+build
+fakeldap.egg-info
+*.pyc
+.tox
+*.swp
+*.egg
