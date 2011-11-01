@@ -31,7 +31,7 @@ import types
 from collections import defaultdict
 
 
-__version__ = "0.5"
+__version__ = "0.5.1"
 
 
 class MockLDAP(object):

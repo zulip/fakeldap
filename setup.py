@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 import os
 import sys
 
+from fakeldap import __version__
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -17,7 +18,7 @@ if sys.version_info >= (3,):
 
 setup(
     name = "fakeldap",
-    version = "0.5",
+    version = __version__,
     #packages = find_packages('fakeldap'),
     #include_package_data=True,
     py_modules = ['fakeldap'],
