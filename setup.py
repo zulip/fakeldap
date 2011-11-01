@@ -18,8 +18,9 @@ if sys.version_info >= (3,):
 setup(
     name = "fakeldap",
     version = "0.5",
-    packages = find_packages('fakeldap'),
+    #packages = find_packages('fakeldap'),
     #include_package_data=True,
+    py_modules = ['fakeldap'],
     install_requires = requirements,
 
     tests_require=tests_require,
