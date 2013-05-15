@@ -1,5 +1,6 @@
 from nose.tools import *
 from fakeldap import MockLDAP
+import ldap
 
 import unittest
 
@@ -28,7 +29,7 @@ class TestLdapOperations(unittest.TestCase):
 
         # Supply the wrong password
         assert_raises(
-            MockLDAP.INVALID_CREDENTIALS,
+            ldap.INVALID_CREDENTIALS,
             self.mock_ldap.simple_bind_s,
             who="cn=admin,dc=30loops,dc=net", cred="wrong"
         )
