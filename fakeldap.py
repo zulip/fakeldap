@@ -29,6 +29,7 @@ import sys
 import logging
 import types
 from collections import defaultdict
+import ldap
 
 
 logger = logging.getLogger(__name__)
@@ -70,11 +71,6 @@ class MockLDAP(object):
     MOD_ADD = 0
     MOD_DELETE = 1
     MOD_REPLACE = 2
-
-    class LDAPError(Exception): pass
-    class INVALID_CREDENTIALS(LDAPError): pass
-    class NO_SUCH_OBJECT(LDAPError): pass
-    class ALREADY_EXISTS(LDAPError): pass
 
     #
     # Submodules
@@ -286,7 +282,7 @@ class MockLDAP(object):
         if success:
             return (97, []) # python-ldap returns this; I don't know what it means
         else:
-            raise self.INVALID_CREDENTIALS('%s:%s' % (who, cred))
+            raise ldap.INVALID_CREDENTIALS('%s:%s' % (who, cred))
 
     def _compare_s(self, dn, attr, value):
         try:
@@ -331,7 +327,7 @@ class MockLDAP(object):
         try:
             entry = self.directory[dn]
         except KeyError:
-            raise self.NO_SUCH_OBJECT
+            raise ldap.NO_SUCH_OBJECT
 
         changes = newdn.split('=')
         newfulldn = '%s=%s,%s' % (changes[0], changes[1],
@@ -380,7 +376,7 @@ class MockLDAP(object):
         logger.debug("entry: %s".format(entry))
         try:
             self.directory[dn]
-            raise ALREADY_EXISTS
+            raise ldap.ALREADY_EXISTS
         except KeyError:
             self.directory[dn] = entry
             return (105,[], len(self.calls), [])
