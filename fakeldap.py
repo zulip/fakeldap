@@ -372,7 +372,10 @@ class MockLDAP(object):
         if attrs is None:
             raise ldap.NO_SUCH_OBJECT
 
-        return [(base, attrs)]
+        return [(base, self.filter_attrs(attrlist, attrs))]
+
+    def filter_attrs(self, attrlist, attrs):
+        return {name: attr for name, attr in attrs.iteritems() if name in attrlist}
 
     def _add_s(self, dn, record):
         # change the record into the proper format for the internal directory
