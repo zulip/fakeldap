@@ -367,19 +367,32 @@ class MockLDAP(object):
 #            raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
 #                (base, scope, filterstr, attrlist, attrsonly))
 
-        attrs = self.directory.get(base)
-        print attrs
+        def _finditem(obj, key):
+            if key in obj: return obj[key]
+            found = None
+            for k, v in obj.items():
+                if isinstance(v,dict):
+                    found =  _finditem(v, key)  #added return statement
+            if found is not None:
+                return found
+            else:
+                return None
+
+        #attrs = self.directory.get(base)
+        attrs = _finditem(self.directory, base)
         if attrs is None:
             raise ldap.NO_SUCH_OBJECT
 
-        return [(base, attrs)]
+        return [(base, self.filter_attrs(attrlist, attrs))]
+
+    def filter_attrs(self, attrlist, attrs):
+        return {name: attr for name, attr in attrs.iteritems() if name in attrlist}
 
     def _add_s(self, dn, record):
         # change the record into the proper format for the internal directory
         entry = {}
         for item in record:
             entry[item[0]] = item[1]
-        print entry
         try:
             self.directory[dn]
             raise ALREADY_EXISTS
