@@ -368,7 +368,6 @@ class MockLDAP(object):
 #                (base, scope, filterstr, attrlist, attrsonly))
 
         attrs = self.directory.get(base)
-        print attrs
         if attrs is None:
             raise ldap.NO_SUCH_OBJECT
 
