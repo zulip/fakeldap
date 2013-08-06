@@ -393,7 +393,6 @@ class MockLDAP(object):
         entry = {}
         for item in record:
             entry[item[0]] = item[1]
-        print entry
         try:
             self.directory[dn]
             raise ALREADY_EXISTS
