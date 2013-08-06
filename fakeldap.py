@@ -367,7 +367,19 @@ class MockLDAP(object):
 #            raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
 #                (base, scope, filterstr, attrlist, attrsonly))
 
-        attrs = self.directory.get(base)
+        def _finditem(obj, key):
+            if key in obj: return obj[key]
+            found = None
+            for k, v in obj.items():
+                if isinstance(v,dict):
+                    found =  _finditem(v, key)  #added return statement
+            if found is not None:
+                return found
+            else:
+                return None
+
+        #attrs = self.directory.get(base)
+        attrs = _finditem(self.directory, base)
         if attrs is None:
             raise ldap.NO_SUCH_OBJECT
 
