@@ -25,6 +25,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
 import sys
 import logging
 import types
@@ -130,7 +131,7 @@ class MockLDAP(object):
         # hack, cause lists are not hashable
         if type(arguments[1]) is types.ListType:
             arguments[1] = tuple(arguments[1])
-        print "Set value. api_name: %s, arguments: %s, value: %s" % (api_name, arguments, value)
+        print("Set value. api_name: %s, arguments: %s, value: %s" % (api_name, arguments, value))
         self.return_value_maps[api_name][arguments] = value
 
     def ldap_methods_called_with_arguments(self):
@@ -368,7 +369,7 @@ class MockLDAP(object):
 #                (base, scope, filterstr, attrlist, attrsonly))
 
         attrs = self.directory.get(base)
-        print attrs
+        print(attrs)
         if attrs is None:
             raise ldap.NO_SUCH_OBJECT
 
@@ -379,7 +380,7 @@ class MockLDAP(object):
         entry = {}
         for item in record:
             entry[item[0]] = item[1]
-        print entry
+        print(entry)
         try:
             self.directory[dn]
             raise ALREADY_EXISTS
@@ -411,7 +412,7 @@ class MockLDAP(object):
 
     def _get_return_value(self, api_name, arguments):
         try:
-            print "api: %s, arguments: %s" % (api_name, arguments)
+            print("api: %s, arguments: %s" % (api_name, arguments))
             value = self.return_value_maps[api_name][arguments]
         except KeyError:
             value = None
