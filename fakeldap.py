@@ -130,7 +130,7 @@ class MockLDAP(object):
         arguments.
         """
         # hack, cause lists are not hashable
-        if type(arguments[1]) is types.ListType:
+        if isinstance(arguments[1], list):
             arguments[1] = tuple(arguments[1])
         logger.info("Set value. api_name: %s, arguments: %s, value: %s" % (api_name, arguments, value))
         self.return_value_maps[api_name][arguments] = value
@@ -190,7 +190,7 @@ class MockLDAP(object):
 
     def search_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
         # Hack, cause attributes as a list can't be hashed for storing it
-        if type(attrlist) is types.ListType:
+        if isinstance(attrlist, list):
             attrlist = ', '.join(attrlist)
 
         self._record_call('search_s', {
@@ -313,8 +313,8 @@ class MockLDAP(object):
                 key.append(value)
             elif op is 1:
                 # do a MOD_DELETE
-                if row is tpyes.ListType:
-                    row = entry[key]
+                row = entry[key]
+                if isinstance(row, list):
                     for i in range(len(row)):
                         if value is row[i]:
                             del row[i]
@@ -397,11 +397,11 @@ class MockLDAP(object):
 
         for item in record:
             key, value = item
-            if type(value) is types.ListType:
+            if isinstance(value, list):
                 value = tuple(value)
             new_record.append((key, value))
 
-        if type(new_record) is types.ListType:
+        if isinstance(new_record, list):
             new_record = tuple(new_record)
 
         return new_record
