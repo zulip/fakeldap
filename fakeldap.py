@@ -33,6 +33,8 @@ from collections import defaultdict
 
 __version__ = "0.5.1"
 
+logger = logging.getLogger(__name__)
+
 
 class MockLDAP(object):
     """
@@ -128,9 +130,9 @@ class MockLDAP(object):
         arguments.
         """
         # hack, cause lists are not hashable
-        if type(arguments[1]) is types.ListType:
+        if isinstance(arguments[1], list):
             arguments[1] = tuple(arguments[1])
-        print "Set value. api_name: %s, arguments: %s, value: %s" % (api_name, arguments, value)
+        logger.info("Set value. api_name: %s, arguments: %s, value: %s" % (api_name, arguments, value))
         self.return_value_maps[api_name][arguments] = value
 
     def ldap_methods_called_with_arguments(self):
@@ -188,7 +190,7 @@ class MockLDAP(object):
 
     def search_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
         # Hack, cause attributes as a list can't be hashed for storing it
-        if type(attrlist) is types.ListType:
+        if isinstance(attrlist, list):
             attrlist = ', '.join(attrlist)
 
         self._record_call('search_s', {
@@ -218,8 +220,6 @@ class MockLDAP(object):
         result = self._get_return_value('compare_s', (dn, attr, value))
         if result is None:
             result = self._compare_s(dn, attr, value)
-
-        # print "compare_s('%s', '%s', '%s'): %d" % (dn, attr, value, result)
 
         return result
 
@@ -313,8 +313,8 @@ class MockLDAP(object):
                 key.append(value)
             elif op is 1:
                 # do a MOD_DELETE
-                if row is tpyes.ListType:
-                    row = entry[key]
+                row = entry[key]
+                if isinstance(row, list):
                     for i in range(len(row)):
                         if value is row[i]:
                             del row[i]
@@ -368,7 +368,7 @@ class MockLDAP(object):
 #                (base, scope, filterstr, attrlist, attrsonly))
 
         attrs = self.directory.get(base)
-        print attrs
+        logger.debug("attrs: %s".format(attrs))
         if attrs is None:
             raise ldap.NO_SUCH_OBJECT
 
@@ -379,7 +379,7 @@ class MockLDAP(object):
         entry = {}
         for item in record:
             entry[item[0]] = item[1]
-        print entry
+        logger.debug("entry: %s".format(entry))
         try:
             self.directory[dn]
             raise ALREADY_EXISTS
@@ -397,11 +397,11 @@ class MockLDAP(object):
 
         for item in record:
             key, value = item
-            if type(value) is types.ListType:
+            if isinstance(value, list):
                 value = tuple(value)
             new_record.append((key, value))
 
-        if type(new_record) is types.ListType:
+        if isinstance(new_record, list):
             new_record = tuple(new_record)
 
         return new_record
@@ -411,7 +411,7 @@ class MockLDAP(object):
 
     def _get_return_value(self, api_name, arguments):
         try:
-            print "api: %s, arguments: %s" % (api_name, arguments)
+            logger.info("api: %s, arguments: %s" % (api_name, arguments))
             value = self.return_value_maps[api_name][arguments]
         except KeyError:
             value = None
