@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 import sys
 
-from fakeldap import __version__
+from version import __version__
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
