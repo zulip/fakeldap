@@ -8,8 +8,8 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 extra = {}
-requirements = [],
-tests_require = ['nose', 'Mock', 'coverage', 'unittest2']
+requirements = ['python-ldap'],
+tests_require = ['nose', 'Mock', 'coverage', 'unittest2', 'python-ldap']
 
 # In case we use python3
 if sys.version_info >= (3,):
