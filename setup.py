@@ -31,7 +31,7 @@ setup(
 
     author = "Christo Buschek",
     author_email = "crito@30loops.net",
-    url = "https://github.com/30loops/fakeldap",
+    url = "https://github.com/zulip/fakeldap",
     description = "An implementation of a LDAPObject to fake a ldap server in unittests.",
     long_description = read('README.rst'),
     classifiers = [
