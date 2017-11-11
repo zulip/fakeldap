@@ -35,7 +35,7 @@ setup(
     description = "An implementation of a LDAPObject to fake a ldap server in unittests.",
     long_description = read('README.rst'),
     classifiers = [
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
