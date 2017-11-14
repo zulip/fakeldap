@@ -11,11 +11,6 @@ extra = {}
 requirements = ['pyldap'],
 tests_require = ['nose', 'Mock', 'coverage', 'unittest2', 'pyldap']
 
-# In case we use python3
-if sys.version_info >= (3,):
-    extra['use_2to3'] = True
-
-
 setup(
     name = "fakeldap",
     version = __version__,
