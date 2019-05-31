@@ -29,7 +29,15 @@ import sys
 import logging
 import types
 from collections import defaultdict
-import ldap
+
+try:
+    import ldap
+except ImportError:
+    class ldap(object):
+        class LDAPError(Exception): pass
+        class INVALID_CREDENTIALS(LDAPError): pass
+        class NO_SUCH_OBJECT(LDAPError): pass
+        class ALREADY_EXISTS(LDAPError): pass
 
 
 logger = logging.getLogger(__name__)

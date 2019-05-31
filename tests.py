@@ -1,6 +1,5 @@
 from nose.tools import *
-from fakeldap import MockLDAP
-import ldap
+from fakeldap import MockLDAP, ldap
 
 import unittest
 
