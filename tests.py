@@ -59,3 +59,57 @@ class TestLdapOperations(unittest.TestCase):
                     "uid=bas,ou=people,dc=30loops,dc=net", record
                     ))
 
+    def test_search_s_base(self):
+        result = self.mock_ldap.search_s("cn=admin,dc=30loops,dc=net", ldap.SCOPE_BASE)
+        self.assertEqual(result, [('cn=admin,dc=30loops,dc=net', {'userPassword': 'ldaptest'})])
+
+    def test_search_s_onelevel(self):
+        directory = {
+            "ou=users,dc=30loops,dc=net": { "ou": "users" },
+            "cn=admin,ou=users,dc=30loops,dc=net": {
+                    "userPassword": "ldaptest"
+                    },
+            "cn=john,ou=users,dc=30loops,dc=net": {
+                    "userPassword": "ldaptest",
+                    "mail": "john@example.com"
+                    },
+            "cn=jack,ou=users,dc=30loops,dc=net": {
+                    # test [value, ] format here
+                    "userPassword": ["ldaptest", ],
+                    "mail": ["jack@example.com", ]
+                    },
+            "cn=john2,ou=users,dc=30loops,dc=net": {
+                    "userPassword": "ldaptest",
+                    "mail": "john@example.com"  # same mail as john
+                    }
+        }
+        self.mock_ldap = MockLDAP(directory)
+
+        result = self.mock_ldap.search_s("dc=30loops,dc=net", ldap.SCOPE_ONELEVEL,
+                                         "(mail=jack@example.com)")
+        # The search is one-level, so the above should return no results:
+        self.assertEqual(result, [])
+
+        result = self.mock_ldap.search_s("ou=users,dc=30loops,dc=net", ldap.SCOPE_ONELEVEL,
+                                         "(mail=jack@example.com)")
+        self.assertEqual(
+            result,
+            [('cn=jack,ou=users,dc=30loops,dc=net',
+             {'userPassword': ['ldaptest'], 'mail': ['jack@example.com']})]
+        )
+
+        result = self.mock_ldap.search_s("ou=users,dc=30loops,dc=net", ldap.SCOPE_ONELEVEL,
+                                         "(mail=john@example.com)")
+        self.assertEqual(len(result), 2)
+        self.assertIn(
+            ('cn=john,ou=users,dc=30loops,dc=net', {'userPassword': 'ldaptest', 'mail': 'john@example.com'}),
+            result
+        )
+        self.assertIn(
+            ('cn=john2,ou=users,dc=30loops,dc=net', {'userPassword': 'ldaptest', 'mail': 'john@example.com'}),
+            result
+        )
+
+        result = self.mock_ldap.search_s("dc=30loops,dc=net", ldap.SCOPE_ONELEVEL,
+                                          "(mail=nonexistant@example.com)")
+        self.assertEqual(result, [])
