@@ -25,6 +25,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import re
 import sys
 import logging
 import types
@@ -349,24 +350,33 @@ class MockLDAP(object):
 
     def _search_s(self, base, scope, filterstr, attrlist, attrsonly):
         """
-        We can do a SCOPE_BASE search with the default filter. Beyond that,
+        We can do a SCOPE_BASE search with the default filter and simple SCOPE_ONELEVEL
+        with query of the form (attribute_name=some_value). Beyond that,
         you're on your own.
         """
         #FIXME: Implement different scopes
-#        if scope != self.SCOPE_BASE:
-#            raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
-#                (base, scope, filterstr, attrlist, attrsonly))
 
-#        if filterstr != '(objectClass=*)':
-#            raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
-#                (base, scope, filterstr, attrlist, attrsonly))
+        if scope == self.SCOPE_BASE:
+            if filterstr != '(objectClass=*)':
+                raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
+                    (base, scope, filterstr, attrlist, attrsonly))
+            attrs = self.directory.get(base)
+            logger.debug("attrs: %s".format(attrs))
+            if attrs is None:
+                raise ldap.NO_SUCH_OBJECT
 
-        attrs = self.directory.get(base)
-        logger.debug("attrs: %s".format(attrs))
-        if attrs is None:
-            raise ldap.NO_SUCH_OBJECT
+            return [(base, attrs)]
+        elif scope == self.SCOPE_ONELEVEL:
+            simple_query_regex = r"\(\w+=.+\)$"  # matches things like (some_attribute=value)
+            r = re.compile(simple_query_regex)
+            if r.match(filterstr) is None:  # only this very simple search is supported
+                raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
+                    (base, scope, filterstr, attrlist, attrsonly))
 
-        return [(base, attrs)]
+            return self._simple_onelevel_search(base, filterstr)
+        else:
+            raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
+                (base, scope, filterstr, attrlist, attrsonly))
 
     def _add_s(self, dn, record):
         # change the record into the proper format for the internal directory
@@ -380,6 +390,25 @@ class MockLDAP(object):
         except KeyError:
             self.directory[dn] = entry
             return (105,[], len(self.calls), [])
+
+    def _simple_onelevel_search(self, base, filterstr):
+        search_attr_name, search_attr_value = filterstr[1:-1].split('=')
+
+        result = []
+        for dn, attrs in self.directory.items():
+            if dn.endswith(',{}'.format(base)):
+                if ',' in dn.strip(',{}'.format(base)):
+                    # This would mean going more than one level in.
+                    continue
+
+                search_attr = attrs.get(search_attr_name)
+                if search_attr == search_attr_value:
+                    result.append((dn, attrs))
+                elif isinstance(search_attr, list):  # if attr is in the format "attr_name": ["value", ]
+                    if len(search_attr) == 1 and search_attr[0] == search_attr_value:
+                        result.append((dn, attrs))
+
+        return result
 
     #
     # Utils
