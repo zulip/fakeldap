@@ -8,8 +8,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 extra = {}
-requirements = ['pyldap'],
-tests_require = ['nose', 'Mock', 'coverage', 'unittest2', 'pyldap']
+tests_require = ['nose', 'Mock', 'coverage', 'unittest2', 'python-ldap']
 
 setup(
     name = "fakeldap",
@@ -17,7 +16,6 @@ setup(
     #packages = find_packages('fakeldap'),
     #include_package_data=True,
     py_modules = ['fakeldap'],
-    install_requires = requirements,
 
     tests_require=tests_require,
     setup_requires='nose',
