@@ -294,9 +294,8 @@ class MockLDAP(object):
         return found and 1 or 0
 
     def _modify_s(self, dn, mod_attrs):
-        try:
-            entry = self.directory[dn]
-        except KeyError:
+        entry = self.directory[dn]
+        if entry == {}:
             raise ldap.NO_SUCH_OBJECT
 
         for item in mod_attrs:
@@ -325,9 +324,8 @@ class MockLDAP(object):
         return (103, [])
 
     def _rename_s(self, dn, newdn):
-        try:
-            entry = self.directory[dn]
-        except KeyError:
+        entry = self.directory[dn]
+        if entry == {}:
             raise ldap.NO_SUCH_OBJECT
 
         changes = newdn.split('=')
@@ -384,10 +382,9 @@ class MockLDAP(object):
         for item in record:
             entry[item[0]] = item[1]
         logger.debug("entry: %s".format(entry))
-        try:
-            self.directory[dn]
+        if self.directory[dn] != {}:
             raise ldap.ALREADY_EXISTS
-        except KeyError:
+        else:
             self.directory[dn] = entry
             return (105,[], len(self.calls), [])
 
