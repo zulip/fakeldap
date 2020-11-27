@@ -317,13 +317,28 @@ class MockLDAP(object):
                 entry[key] = tuple(row)
             elif op is 1:
                 # do a MOD_DELETE
-                row = entry[key]
-                if isinstance(row, list):
-                    for i in range(len(row)):
-                        if value is row[i]:
-                            del row[i]
+                row = list(entry[key])
+                if isinstance(value, str) or isinstance(value, bytes):
+                    value = [value]
+
+                if value == None:
+                    row = []
+
                 else:
+                    # delete values individually (and see what values remain)
+                    for val in value:
+                        for i in range(len(row)-1, -1, -1):
+                            if val == row[i]:
+                                # FIXME: throw an ldap exception here (not such value or
+                                # simiar, not sure what happens in real life here)
+                                del row[i]
+
+                # if no values remain, drop the entire LDAP attribute description from the LDAP entry
+                if row == []:
                     del entry[key]
+                else:
+                    entry[key] = tuple(row)
+
                 self.directory[dn] = entry
             elif op is 2:
                 # do a MOD_REPLACE
