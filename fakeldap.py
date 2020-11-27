@@ -36,6 +36,31 @@ import ldap
 logger = logging.getLogger(__name__)
 
 
+# Helper function that goes over a complex (iterable) data structure
+# and turns contained lists into tuples (recursively).
+def _tupelize(data):
+    if not ( ( type(data) is list ) or ( type(data) is tuple ) or ( type(data) is dict ) ):
+        return data
+
+    # list or tuple ? (convert lists to tuples, then)
+    elif ( type(data) is list ) or ( type(data) is tuple ):
+        _tupelized_data = []
+
+        for d in data:
+            _tupelized_data.append(_tupelize(d))
+
+        return tuple(_tupelized_data)
+
+    # then, probably dict... (let's split dicts up as (key, value) tuples)
+    else:
+        _tupelized_data = []
+        for k,v in data.items():
+            _tupelized_data.append((k, _tupelize(v)))
+
+        _tupelized_data.sort()
+        return tuple(_tupelized_data)
+
+
 class MockLDAP(object):
     """
     This is a stand-in for the python-ldap module; it serves as both the ldap
@@ -124,9 +149,9 @@ class MockLDAP(object):
         Stores a preset return value for a given API with a given set of
         arguments.
         """
-        # hack, cause lists are not hashable
-        if isinstance(arguments[1], list):
-            arguments[1] = tuple(arguments[1])
+        # lists are not hashable, so make sure, lists end up as tuples...
+        arguments = _tupelize(arguments)
+
         logger.info("Set value. api_name: %s, arguments: %s, value: %s" % (api_name, arguments, value))
         self.return_value_maps[api_name][arguments] = value
 
@@ -223,8 +248,6 @@ class MockLDAP(object):
             'dn': dn,
             'mod_attrs': mod_attrs
         })
-
-        mod_attrs = tuple(mod_attrs)
         result = self._get_return_value('modify_s', (dn, mod_attrs))
         if result is None:
             result = self._modify_s(dn, mod_attrs)
@@ -248,7 +271,7 @@ class MockLDAP(object):
             'record': record,
         })
 
-        record = self._mangle_record(record)
+        record = _tupelize(record)
 
         result = self._get_return_value('add_s', (dn, record))
         if result is None:
@@ -440,25 +463,14 @@ class MockLDAP(object):
     # Utils
     #
 
-    def _mangle_record(self, record):
-        """Change lists into tuples, so that they can be hashed."""
-        new_record = []
-
-        for item in record:
-            key, value = item
-            if isinstance(value, list):
-                value = tuple(value)
-            new_record.append((key, value))
-
-        if isinstance(new_record, list):
-            new_record = tuple(new_record)
-
-        return new_record
-
     def _record_call(self, api_name, arguments):
         self.calls.append((api_name, arguments))
 
     def _get_return_value(self, api_name, arguments):
+
+        # lists are not hashable, so make sure, lists end up as tuples...
+        arguments = _tupelize(arguments)
+
         try:
             logger.info("api: %s, arguments: %s" % (api_name, arguments))
             value = self.return_value_maps[api_name][arguments]
