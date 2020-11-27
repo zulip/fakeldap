@@ -302,10 +302,18 @@ class MockLDAP(object):
         for item in mod_attrs:
             op, key, value = item
             if op is 0:
-                # FIXME: Can't handle multiple entries with the same name
-                # its broken right now
-                # do a MOD_ADD, assume it to be a list of values
-                key.append(value)
+                try:
+                    row = list(entry[key])
+                except KeyError:
+                    row = []
+                if isinstance(value, tuple):
+                    value = list(value)
+                if isinstance(value, list):
+                    for val in value:
+                        row.append(val)
+                else:
+                    row.append(str(value))
+                entry[key] = tuple(row)
             elif op is 1:
                 # do a MOD_DELETE
                 row = entry[key]
