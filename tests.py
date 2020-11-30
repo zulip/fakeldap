@@ -1,5 +1,5 @@
 from nose.tools import *
-from fakeldap import MockLDAP
+from fakeldap import MockLDAP, _tupelize
 import ldap
 
 import unittest
@@ -18,6 +18,16 @@ class TestLdapOperations(unittest.TestCase):
 
     def tearDown(self):
         self.mock_ldap.reset()
+
+    def test_tupelize(self):
+
+        # one level
+        self.assertEqual('string', _tupelize('string'))
+        self.assertEqual((1,2,3), _tupelize([1,2,3]))
+        self.assertEqual( (('a', 1), ('b', 2), ('c', 3),), _tupelize( {'a': 1, 'b': 2, 'c': 3, } ))
+
+        # recursively and complex
+        self.assertEqual( ('string', (1,2,3,), (('a', 1), ('b', 2), ('c', 3),)), _tupelize( ['string', [1,2,3], {'a': 1, 'b': 2, 'c': 3, }, ] ))
 
     def test_simple_bind_s_operation(self):
         """Try to bind a user."""
