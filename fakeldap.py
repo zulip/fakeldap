@@ -342,7 +342,9 @@ class MockLDAP(object):
                 self.directory[dn] = entry
             elif op is 2:
                 # do a MOD_REPLACE
-                entry[key] = value
+                if isinstance(value, str) or isinstance(value, bytes):
+                    value = [value]
+                entry[key] = tuple(value)
 
         self.directory[dn] = entry
 
