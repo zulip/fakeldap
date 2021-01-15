@@ -31,9 +31,17 @@ import logging
 from collections import defaultdict
 import ldap
 from ldap.controls import SimplePagedResultsControl
+import json
 
 
 logger = logging.getLogger(__name__)
+
+
+class BytesDump(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, bytes):                   # deal with bytes
+            return obj.decode()
+        return json.JSONEncoder.default(self, obj)   # everything else
 
 
 class MockLDAP(object):
@@ -127,11 +135,9 @@ class MockLDAP(object):
         Stores a preset return value for a given API with a given set of
         arguments.
         """
-        # hack, cause lists are not hashable
-        if isinstance(arguments[1], list):
-            arguments[1] = tuple(arguments[1])
         logger.info("Set value. api_name: %s, arguments: %s, value: %s" % (api_name, arguments, value))
-        self.return_value_maps[api_name][arguments] = value
+        args_str = json.dumps(arguments, cls=BytesDump)
+        self.return_value_maps[api_name][args_str] = value
 
     def ldap_methods_called_with_arguments(self):
         """
@@ -494,9 +500,10 @@ class MockLDAP(object):
         self.calls.append((api_name, arguments))
 
     def _get_return_value(self, api_name, arguments):
+        args_str = json.dumps(arguments, cls=BytesDump)
         try:
-            logger.info("api: %s, arguments: %s" % (api_name, arguments))
-            value = self.return_value_maps[api_name][arguments]
+            logger.info("RETURN: api: %s, arguments: %s" % (api_name, arguments))
+            value = self.return_value_maps[api_name][args_str]
         except KeyError:
             value = None
 
