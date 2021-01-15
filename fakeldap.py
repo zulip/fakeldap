@@ -31,6 +31,7 @@ import logging
 import types
 from collections import defaultdict
 import ldap
+from ldap.controls import SimplePagedResultsControl
 
 
 logger = logging.getLogger(__name__)
@@ -106,6 +107,9 @@ class MockLDAP(object):
             self.directory = directory
         else:
             self.directory = defaultdict(lambda: {})
+
+        self.cookie = 0
+        self._async_results = {}
 
         self.reset()
 
@@ -183,11 +187,62 @@ class MockLDAP(object):
 
         return value
 
-    def search_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
-        # Hack, cause attributes as a list can't be hashed for storing it
-        if isinstance(attrlist, list):
-            attrlist = ', '.join(attrlist)
+    def search_ext(
+        self,
+        base,
+        scope,
+        filterstr='(objectClass=*)',
+        attrlist=None,
+        attrsonly=0,
+        serverctrls=None,
+        clientctrls=None,
+        timeout=-1,
+        sizelimit=0
+    ):
+        self._record_call('search_ext', {
+            'base': base,
+            'scope': scope,
+            'filterstr': filterstr,
+            'attrlist': attrlist,
+            'attrsonly': attrsonly,
+            'serverctrls': serverctrls,
+            'clientctrls': clientctrls,
+            'timeout': timeout,
+            'sizelimit': sizelimit
+        })
+        msgid = self.cookie
+        serverctrls[0].cookie = b'%d' % msgid
 
+        self._async_results[self.cookie] = {}
+        self._async_results[self.cookie]['ctrls'] = serverctrls
+        value = self._get_return_value('search_ext', (base, scope, filterstr, attrlist, attrsonly))
+        if value is None:
+            value = self._search_s(base, scope, filterstr, attrlist, attrsonly)
+        self._async_results[self.cookie]['data'] = value
+        self.cookie += 1
+        return msgid
+
+    def result3(self, msgid=ldap.RES_ANY, all=1, timeout=None):
+        self._record_call('result3', {
+            'msgid': msgid,
+            'all': all,
+            'timeout': timeout,
+        })
+
+        if self._async_results:
+            if msgid == ldap.RES_ANY:
+                msgid = self._async_results.keys()[0]
+        if msgid in self._async_results:
+            data = self._async_results[msgid]['data']
+            controls = self._async_results[msgid]['ctrls']
+            del self._async_results[msgid]
+        else:
+            data = []
+        controls[0].cookie = None
+
+        return ldap.RES_SEARCH_RESULT, data, msgid, controls
+
+    def search_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
         self._record_call('search_s', {
             'base': base,
             'scope': scope,
