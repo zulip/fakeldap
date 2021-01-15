@@ -3,17 +3,17 @@
 # Copyright (c) 2009, Peter Sagerson
 # Copyright (c) 2011, Christo Buschek <crito@30loops.net>
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 # - Redistributions of source code must retain the above copyright notice, this
 # list of conditions and the following disclaimer.
-# 
+#
 # - Redistributions in binary form must reproduce the above copyright notice,
 # this list of conditions and the following disclaimer in the documentation
 # and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,7 +28,6 @@
 import re
 import sys
 import logging
-import types
 from collections import defaultdict
 import ldap
 from ldap.controls import SimplePagedResultsControl
@@ -64,7 +63,8 @@ class MockLDAP(object):
     been made, with or without arguments.
     """
 
-    class PresetReturnRequiredError(Exception): pass
+    class PresetReturnRequiredError(Exception):
+        pass
 
     SCOPE_BASE = 0
     SCOPE_ONELEVEL = 1
@@ -86,7 +86,6 @@ class MockLDAP(object):
         def escape_filter_chars(s):
             return s
         escape_filter_chars = staticmethod(escape_filter_chars)
-
 
     def __init__(self, directory=None):
         """
@@ -168,8 +167,10 @@ class MockLDAP(object):
             'trace_stack_limit': trace_stack_limit
         })
 
-        value = self._get_return_value('initialize',
-            (uri, trace_level, trace_file, trace_stack_limit))
+        value = self._get_return_value(
+            'initialize',
+            (uri, trace_level, trace_file, trace_stack_limit)
+        )
         if value is None:
             value = self
 
@@ -246,12 +247,14 @@ class MockLDAP(object):
         self._record_call('search_s', {
             'base': base,
             'scope': scope,
-            'filterstr':filterstr,
-            'attrlist':attrlist,
-            'attrsonly':attrsonly
+            'filterstr': filterstr,
+            'attrlist': attrlist,
+            'attrsonly': attrsonly
         })
-        value = self._get_return_value('search_s',
-            (base, scope, filterstr, attrlist, attrsonly))
+        value = self._get_return_value(
+            'search_s',
+            (base, scope, filterstr, attrlist, attrsonly)
+        )
         if value is None:
             value = self._search_s(base, scope, filterstr, attrlist, attrsonly)
 
@@ -336,7 +339,7 @@ class MockLDAP(object):
             success = True
 
         if success:
-            return (97, []) # python-ldap returns this; I don't know what it means
+            return (97, [])  # python-ldap returns this; I don't know what it means
         else:
             raise ldap.INVALID_CREDENTIALS('%s:%s' % (who, cred))
 
@@ -356,12 +359,12 @@ class MockLDAP(object):
 
         for item in mod_attrs:
             op, key, value = item
-            if op is 0:
+            if op == 0:
                 # FIXME: Can't handle multiple entries with the same name
                 # its broken right now
                 # do a MOD_ADD, assume it to be a list of values
                 key.append(value)
-            elif op is 1:
+            elif op == 1:
                 # do a MOD_DELETE
                 row = entry[key]
                 if isinstance(row, list):
@@ -371,7 +374,7 @@ class MockLDAP(object):
                 else:
                     del entry[key]
                 self.directory[dn] = entry
-            elif op is 2:
+            elif op == 2:
                 # do a MOD_REPLACE
                 entry[key] = value
 
@@ -413,8 +416,9 @@ class MockLDAP(object):
 
         if scope == self.SCOPE_BASE:
             if filterstr != '(objectClass=*)':
-                raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
-                    (base, scope, filterstr, attrlist, attrsonly))
+                raise self.PresetReturnRequiredError(
+                    'search_s("%s", %d, "%s", "%s", %d)' % (base, scope, filterstr, attrlist, attrsonly)
+                )
             attrs = self.directory.get(base)
             logger.debug("attrs: %s".format(attrs))
             if attrs is None:
@@ -425,13 +429,15 @@ class MockLDAP(object):
             simple_query_regex = r"\(\w+=.+\)$"  # matches things like (some_attribute=value)
             r = re.compile(simple_query_regex)
             if r.match(filterstr) is None:  # only this very simple search is supported
-                raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
-                    (base, scope, filterstr, attrlist, attrsonly))
+                raise self.PresetReturnRequiredError(
+                    'search_s("%s", %d, "%s", "%s", %d)' % (base, scope, filterstr, attrlist, attrsonly)
+                )
 
             return self._simple_onelevel_search(base, filterstr)
         else:
-            raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
-                (base, scope, filterstr, attrlist, attrsonly))
+            results = self.directory.get(f'search:{filterstr}', [])
+            logger.debug("results: %s".format(results))
+            return results
 
     def _add_s(self, dn, record):
         # change the record into the proper format for the internal directory
@@ -444,7 +450,7 @@ class MockLDAP(object):
             raise ldap.ALREADY_EXISTS
         except KeyError:
             self.directory[dn] = entry
-            return (105,[], len(self.calls), [])
+            return (105, [], len(self.calls), [])
 
     def _simple_onelevel_search(self, base, filterstr):
         search_attr_name, search_attr_value = filterstr[1:-1].split('=')
@@ -498,4 +504,3 @@ class MockLDAP(object):
             raise value
 
         return value
-
