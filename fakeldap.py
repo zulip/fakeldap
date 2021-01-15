@@ -504,6 +504,7 @@ class MockLDAP(object):
         return new_record
 
     def _record_call(self, api_name, arguments):
+        logger.info("CALL: api: %s, arguments: %s" % (api_name, arguments))
         self.calls.append((api_name, arguments))
 
     def _get_return_value(self, api_name, arguments):
