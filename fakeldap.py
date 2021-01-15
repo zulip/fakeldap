@@ -332,6 +332,9 @@ class MockLDAP(object):
 
         return result
 
+    def unbind_s(self):
+        self._record_call('unbind_s', {})
+
     #
     # Internal implementations
     #
