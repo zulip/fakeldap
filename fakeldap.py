@@ -320,15 +320,16 @@ class MockLDAP(object):
 
         return result
 
-    def rename_s(self, dn, newdn):
+    def rename_s(self, dn, newrdn, superior=None):
         self._record_call('rename_s', {
             'dn': dn,
-            'newdn': newdn,
+            'newrdn': newrdn,
+            'superior': superior,
         })
 
-        result = self._get_return_value('rename_s', (dn, newdn))
+        result = self._get_return_value('rename_s', (dn, newrdn, superior))
         if result is None:
-            result = self._rename_s(dn, newdn)
+            result = self._rename_s(dn, newrdn, superior)
 
         return result
 
@@ -391,18 +392,21 @@ class MockLDAP(object):
 
         return (103, [])
 
-    def _rename_s(self, dn, newdn):
+    def _rename_s(self, dn, newrdn, superior=None):
         try:
             entry = self.directory[dn]
         except KeyError:
             raise ldap.NO_SUCH_OBJECT
 
-        changes = newdn.split('=')
-        newfulldn = '%s=%s,%s' % (changes[0], changes[1],
-                ','.join(dn.split(',')[1:]))
+        if not superior:
+            basedn = ','.join(dn.split(',')[1:])
+        else:
+            basedn = superior
+        newdn = newrdn + ',' + basedn
+        attr, value = newrdn.split('=')
 
-        entry[changes[0]] = changes[1]
-        self.directory[newfulldn] = entry
+        entry[attr] = value
+        self.directory[newdn] = entry
         del self.directory[dn]
 
         return (109, [])
