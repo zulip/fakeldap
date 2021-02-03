@@ -25,13 +25,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from copy import deepcopy
 import re
 import sys
 import logging
 from collections import defaultdict
+import json
 import ldap
 from ldap.controls import SimplePagedResultsControl
-import json
+import pprint
 
 
 logger = logging.getLogger(__name__)
@@ -394,7 +396,7 @@ class MockLDAP(object):
 
     def _rename_s(self, dn, newrdn, superior=None):
         try:
-            entry = self.directory[dn]
+            entry = deepcopy(self.directory[dn])
         except KeyError:
             raise ldap.NO_SUCH_OBJECT
 
