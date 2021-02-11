@@ -17,9 +17,13 @@ taken from Peter Sagerson's excellent django-auth-ldap_ module.
 Installation
 ============
 
-Get and install the code::
+To install from PyPI::
 
-    $ git clone git://github.com/30loops/fakeldap.git
+    $ pip install fakeldap
+
+To install via ``setup.py``::
+
+    $ git clone git://github.com/zulip/fakeldap.git
     $ cd fakeldap
     $ python setup.py install
 
@@ -34,14 +38,14 @@ Usage
 
     This code is still experimental and not very tested as of yet. So is the
     documentation
-    
+
 The ``MockLDAP`` class replaces the ``LDAPObject`` of the python-ldap module.
 The easiest way to use it, is to overwrite ``ldap.initialize`` to return
-``MockLDAP`` instead of ``LDAPObject``. The example below uses Michael Foord's
+``MockLDAP`` instead of ``LDAPObject``. The example below uses Python 3's
 Mock_ library to achieve that::
 
     import unittest
-    from mock import patch
+    from unittest.mock import patch
     from fakeldap import MockLDAP
 
 
@@ -60,13 +64,16 @@ Mock_ library to achieve that::
 
 The mock ldap object implements the following ldap operations:
 
-- simple_bind_s
-- search_s
-- compare_s
-- modify_s
-- delete_s
 - add_s
+- compare_s
+- delete_s
+- modify_s
 - rename_s
+- result3
+- search_ext
+- search_s
+- simple_bind_s
+- unbind_s
 
 This is an example how to use ``MockLDAP`` with fixed return values::
 
@@ -121,7 +128,7 @@ ldap server with a directory of entries::
                 "userPassword": "ldaptest"
         }
     }
-    mock_ldap = MockLDAP(tree) 
+    mock_ldap = MockLDAP(tree)
 
     record = [
         ('uid', 'crito'),

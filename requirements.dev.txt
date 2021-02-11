@@ -1,0 +1,10 @@
+# Development
+# ------------------------------------------------------------------------------
+autopep8==1.5                                 # https://github.com/hhatto/autopep8
+flake8==3.7.9                                 # https://github.com/PyCQA/flake8
+pycodestyle==2.5.0                            # https://github.com/PyCQA/pycodestyle
+mypy==0.701                                   # https://github.com/python/mypy
+
+# Testing
+# ------------------------------------------------------------------------------
+nose==1.3.7                                   # https://github.com/nose-devs/nose
