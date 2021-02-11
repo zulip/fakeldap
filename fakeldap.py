@@ -450,8 +450,9 @@ class MockLDAP(object):
 
             return self._simple_onelevel_search(base, filterstr)
         else:
-            results = self.directory.get(f'search:{filterstr}', [])
-            logger.debug("results: %s".format(results))
+            key = f'search:{filterstr}'
+            results = self.directory.get(key, [])
+            logger.debug(f"_search_s.results('{key}'): {results}")
             return results
 
     def _add_s(self, dn, record):
