@@ -324,7 +324,7 @@ class MockLDAP(object):
 
         for item in mod_attrs:
             op, key, value = item
-            if op is 0:
+            if op == 0:
                 # do a MOD_ADD
                 try:
                     row = list(entry[key])
@@ -338,7 +338,7 @@ class MockLDAP(object):
                 else:
                     row.append(str(value))
                 entry[key] = tuple(row)
-            elif op is 1:
+            elif op == 1:
                 # do a MOD_DELETE
                 row = list(entry[key])
                 if isinstance(value, str) or isinstance(value, bytes):
@@ -363,7 +363,7 @@ class MockLDAP(object):
                     entry[key] = tuple(row)
 
                 self.directory[dn] = entry
-            elif op is 2:
+            elif op == 2:
                 # do a MOD_REPLACE
                 if isinstance(value, str) or isinstance(value, bytes):
                     value = [value]
