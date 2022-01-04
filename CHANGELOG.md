@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+## [0.6.3] - 2022-01-04
+### Added
+- Add support for multi-value lists in MOD_ADD and MOD_DELETE operations
+
+### Changed
+- Fix a bug in MOD_REPLACE operations, where the directory entry could
+  be changed to no longer be a tuple.
+- Fix Python 3.8+ SyntaxWarning about using the is operator with literals
+
 ## [0.6.2] - 2020-07-23
 ### Added
 - Add basic SCOPE_ONELEVEL search functionality.
