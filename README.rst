@@ -19,7 +19,7 @@ Installation
 
 Get and install the code::
 
-    $ git clone git://github.com/30loops/fakeldap.git
+    $ git clone git://github.com/zulip/fakeldap.git
     $ cd fakeldap
     $ python setup.py install
 
