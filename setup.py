@@ -2,8 +2,6 @@ from setuptools import setup, find_packages
 import os
 import sys
 
-from version import __version__
-
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
@@ -13,7 +11,7 @@ tests_require = ['nose', 'Mock', 'coverage', 'unittest2', 'python-ldap']
 
 setup(
     name = "fakeldap",
-    version = __version__,
+    version = "0.6.3",
     #packages = find_packages('fakeldap'),
     #include_package_data=True,
     py_modules = ['fakeldap'],
