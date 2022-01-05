@@ -3,11 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+## [0.6.4] - 2022-01-04
+### Changed
+- Fix ModuleNotFoundError for version.py when installing from source
+  distributions.
+
 ## [0.6.3] - 2022-01-04
 ### Added
 - Add support for multi-value lists in MOD_ADD and MOD_DELETE operations.
-- Fix ModuleNotFoundError for version.py when installing from source
-  distributions.
 
 ### Changed
 - Fix a bug in MOD_REPLACE operations, where the directory entry could

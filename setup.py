@@ -11,7 +11,7 @@ tests_require = ['nose', 'Mock', 'coverage', 'unittest2', 'python-ldap']
 
 setup(
     name = "fakeldap",
-    version = "0.6.3",
+    version = "0.6.4",
     #packages = find_packages('fakeldap'),
     #include_package_data=True,
     py_modules = ['fakeldap'],
