@@ -196,3 +196,16 @@ class TestLdapOperations(unittest.TestCase):
         result = self.mock_ldap.search_s("dc=30loops,dc=net", ldap.SCOPE_ONELEVEL,
                                           "(mail=nonexistant@example.com)")
         self.assertEqual(result, [])
+
+        # search for both johns using anded conditions:
+        result = self.mock_ldap.search_s("ou=users,dc=30loops,dc=net", ldap.SCOPE_ONELEVEL,
+                                          "(&(mail=john@example.com)(userPassword=ldaptest))")
+
+        self.assertIn(
+            ('cn=john,ou=users,dc=30loops,dc=net',{'mail': 'john@example.com', 'userPassword': 'ldaptest'}),
+            result
+        )
+        self.assertIn(
+            ('cn=john2,ou=users,dc=30loops,dc=net',{'mail': 'john@example.com', 'userPassword': 'ldaptest'}),
+            result
+        )
