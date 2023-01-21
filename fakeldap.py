@@ -209,6 +209,7 @@ class MockLDAP(object):
         return value
 
     def search_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
+
         # Hack, cause attributes as a list can't be hashed for storing it
         if isinstance(attrlist, list):
             attrlist = ', '.join(attrlist)
@@ -223,6 +224,7 @@ class MockLDAP(object):
         value = self._get_return_value('search_s',
             (base, scope, filterstr, attrlist, attrsonly))
         if value is None:
+            base = self._use_dn_capitalization_from_directory(base)
             value = self._search_s(base, scope, filterstr, attrlist, attrsonly)
 
         return value
@@ -309,17 +311,18 @@ class MockLDAP(object):
             raise ldap.INVALID_CREDENTIALS('%s:%s' % (who, cred))
 
     def _compare_s(self, dn, attr, value):
+
         try:
-            found = (value in self.directory[dn][attr])
+            found = (value in self.directory[self._use_dn_capitalization_from_directory(dn)][attr])
         except KeyError:
             found = False
 
         return found and 1 or 0
 
     def _modify_s(self, dn, mod_attrs):
-        try:
-            entry = self.directory[dn]
-        except KeyError:
+        dn = self._use_dn_capitalization_from_directory(dn)
+        entry = self.directory[dn]
+        if entry == {}:
             raise ldap.NO_SUCH_OBJECT
 
         for item in mod_attrs:
@@ -374,9 +377,9 @@ class MockLDAP(object):
         return (103, [])
 
     def _rename_s(self, dn, newdn):
-        try:
-            entry = self.directory[dn]
-        except KeyError:
+        dn = self._use_dn_capitalization_from_directory(dn)
+        entry = self.directory[dn]
+        if entry == {}:
             raise ldap.NO_SUCH_OBJECT
 
         changes = newdn.split('=')
@@ -390,8 +393,9 @@ class MockLDAP(object):
         return (109, [])
 
     def _delete_s(self, dn):
+
         try:
-            del self.directory[dn]
+            del self.directory[self._use_dn_capitalization_from_directory(dn)]
         except KeyError:
             raise ldap.NO_SUCH_OBJECT
 
@@ -409,7 +413,8 @@ class MockLDAP(object):
             if filterstr != '(objectClass=*)':
                 raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
                     (base, scope, filterstr, attrlist, attrsonly))
-            attrs = self.directory.get(base)
+
+            attrs = self.directory.get(self._use_dn_capitalization_from_directory(base))
             logger.debug("attrs: %s".format(attrs))
             if attrs is None:
                 raise ldap.NO_SUCH_OBJECT
@@ -422,7 +427,7 @@ class MockLDAP(object):
                 raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
                     (base, scope, filterstr, attrlist, attrsonly))
 
-            return self._simple_onelevel_search(base, filterstr)
+            return self._simple_onelevel_search(self._use_dn_capitalization_from_directory(base), filterstr)
         else:
             raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
                 (base, scope, filterstr, attrlist, attrsonly))
@@ -433,10 +438,10 @@ class MockLDAP(object):
         for item in record:
             entry[item[0]] = item[1]
         logger.debug("entry: %s".format(entry))
-        try:
-            self.directory[dn]
+
+        if self.directory[self._use_dn_capitalization_from_directory(dn)] != {}:
             raise ldap.ALREADY_EXISTS
-        except KeyError:
+        else:
             self.directory[dn] = entry
             return (105,[], len(self.calls), [])
 
@@ -482,3 +487,19 @@ class MockLDAP(object):
 
         return value
 
+
+    def _use_dn_capitalization_from_directory(self, dn):
+
+        # LDAP DNs in LDAP servers are normally matched in a case-insensitive way.
+        # So for MockLDAP, we search our mock directory and try to find a
+        # case-insensitive match of the given DN.
+        #
+        # Saying this, we always have to return the requested DN with the capitalization as
+        # stored in our mock LDAP directory. Otherwise, MockLDAP would behave differently from
+        # live LDAP server.
+
+        for _dn in self.directory:
+            if _dn.lower() == dn.lower():
+                dn = _dn
+
+        return dn
