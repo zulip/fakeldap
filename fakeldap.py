@@ -419,7 +419,7 @@ class MockLDAP(object):
             simple_query_regex = r"\(\w+=.+\)$"  # matches things like (some_attribute=value)
             r_simple = re.compile(simple_query_regex)
 
-            anding_query_regex = r"\(\&(\(\w+=.+\))+\)$"  # matches things like (&(some_attribute=value)(other_attr=othervalue)), but with any number of "anded" conditions
+            anding_query_regex = r"\(\&(\(\w+=[A-Za-z0-9_\@\.]+\))+\)$"  # matches things like (&(some_attribute=value)(other_attr=othervalue)), but with any number of "anded" conditions
             r_anded = re.compile(anding_query_regex)
 
             if r_simple.match(filterstr) is not None:
