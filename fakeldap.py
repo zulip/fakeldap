@@ -417,12 +417,21 @@ class MockLDAP(object):
             return [(base, attrs)]
         elif scope == self.SCOPE_ONELEVEL:
             simple_query_regex = r"\(\w+=.+\)$"  # matches things like (some_attribute=value)
-            r = re.compile(simple_query_regex)
-            if r.match(filterstr) is None:  # only this very simple search is supported
+            r_simple = re.compile(simple_query_regex)
+
+            anding_query_regex = r"\(\&(\(\w+=[A-Za-z0-9_\@\.]+\))+\)$"  # matches things like (&(some_attribute=value)(other_attr=othervalue)), but with any number of "anded" conditions
+            r_anded = re.compile(anding_query_regex)
+
+            if r_simple.match(filterstr) is not None:
+                search_attr_name, search_attr_value = filterstr[1:-1].split('=')
+                return self._multiple_attrs_onelevel_search(base, [(search_attr_name, search_attr_value)])
+            elif r_anded.match(filterstr) is not None:
+                bracketList = filterstr[3:-2] # cut of the `(&(` and `))` --> attr1=val1)(attr2=val2
+                attrs_conditions = [tuple(condition.split("=")) for condition in bracketList.split(")(")]
+                return self._multiple_attrs_onelevel_search(base, attrs_conditions)
+            else:
                 raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
                     (base, scope, filterstr, attrlist, attrsonly))
-
-            return self._simple_onelevel_search(base, filterstr)
         else:
             raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %
                 (base, scope, filterstr, attrlist, attrsonly))
@@ -440,9 +449,13 @@ class MockLDAP(object):
             self.directory[dn] = entry
             return (105,[], len(self.calls), [])
 
-    def _simple_onelevel_search(self, base, filterstr):
-        search_attr_name, search_attr_value = filterstr[1:-1].split('=')
+    def _multiple_attrs_onelevel_search(self, base, attrs_conditions):
+        """Search the base with tuples of conditions that are "anded" together
+        (all conditions have to be met)
 
+        attrs_conditions -- List of tuples, first element of each tuple is the attribute
+                            name. Second element is the required value.
+        """
         result = []
         for dn, attrs in self.directory.items():
             if dn.endswith(',{}'.format(base)):
@@ -450,12 +463,19 @@ class MockLDAP(object):
                     # This would mean going more than one level in.
                     continue
 
-                search_attr = attrs.get(search_attr_name)
-                if search_attr == search_attr_value:
+                match = True
+                for search_attr_name, search_attr_value in attrs_conditions:
+                    search_attr = attrs.get(search_attr_name)
+                    if search_attr == search_attr_value:
+                        continue
+                    elif isinstance(search_attr, list) and search_attr_value in search_attr:  # if attr is in the format "attr_name": ["value", ]
+                        continue
+                    else:
+                        match = False
+                        break
+
+                if match:
                     result.append((dn, attrs))
-                elif isinstance(search_attr, list):  # if attr is in the format "attr_name": ["value", ]
-                    if len(search_attr) == 1 and search_attr[0] == search_attr_value:
-                        result.append((dn, attrs))
 
         return result
 
@@ -481,4 +501,3 @@ class MockLDAP(object):
             raise value
 
         return value
-
