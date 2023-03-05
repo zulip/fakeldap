@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fakeldap"
+version = "0.6.5"
+authors = [{ name = "Christo Buschek", email = "crito@30loops.net" }]
+description = "An implementation of a LDAPObject to fake a ldap server in unittests."
+readme = "README.rst"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = ["python-ldap >= 3.4.3"]
+
+[project.urls]
+homepage = "https://github.com/zulip/fakeldap/"
+
+[tool.setuptools]
+py-modules = ["fakeldap"]

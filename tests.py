@@ -1,4 +1,3 @@
-from nose.tools import *
 from fakeldap import MockLDAP, _tupelize
 import ldap
 
@@ -32,17 +31,14 @@ class TestLdapOperations(unittest.TestCase):
     def test_simple_bind_s_operation(self):
         """Try to bind a user."""
         # Make a valid bind
-        eq_(
+        self.assertEqual(
             (97,[]),
             self.mock_ldap.simple_bind_s("cn=admin,dc=30loops,dc=net", "ldaptest")
         )
 
         # Supply the wrong password
-        assert_raises(
-            ldap.INVALID_CREDENTIALS,
-            self.mock_ldap.simple_bind_s,
-            who="cn=admin,dc=30loops,dc=net", cred="wrong"
-        )
+        with self.assertRaises(ldap.INVALID_CREDENTIALS):
+            self.mock_ldap.simple_bind_s("cn=admin,dc=30loops,dc=net", "wrong")
 
     def test_add_s_operation(self):
         """Test the addition of records to the mock ldap object."""
@@ -50,7 +46,7 @@ class TestLdapOperations(unittest.TestCase):
                 ('uid', 'crito'),
                 ('userPassword', 'secret'),
                 ]
-        eq_((105,[],1,[]), self.mock_ldap.add_s(
+        self.assertEqual((105,[],1,[]), self.mock_ldap.add_s(
                     "uid=crito,ou=people,dc=30loops,dc=net", record
                     ))
 
@@ -59,13 +55,13 @@ class TestLdapOperations(unittest.TestCase):
                 "uid=crito,ou=people,dc=30loops,dc=net": {
                     "uid": "crito", "userPassword": "secret"}
                 }
-        eq_(directory, self.mock_ldap.directory)
+        self.assertEqual(directory, self.mock_ldap.directory)
 
         record = [
                 ('uid', 'bas'),
                 ('userPassword', 'secret'),
                 ]
-        eq_((105,[],2,[]), self.mock_ldap.add_s(
+        self.assertEqual((105,[],2,[]), self.mock_ldap.add_s(
                     "uid=bas,ou=people,dc=30loops,dc=net", record
                     ))
 
@@ -81,7 +77,7 @@ class TestLdapOperations(unittest.TestCase):
         self.mock_ldap = MockLDAP(directory)
 
         modlist_MOD_ADD_non_present_attrdesc = [ (self.mock_ldap.MOD_ADD, 'description', 'Group of all users', ), ]
-        eq_((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_ADD_non_present_attrdesc))
+        self.assertEqual((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_ADD_non_present_attrdesc))
 
         self.assertEqual(self.mock_ldap.directory["cn=users,ou=groups,dc=30loops,dc=net"],
             {
@@ -92,7 +88,7 @@ class TestLdapOperations(unittest.TestCase):
         )
 
         modlist_MOD_ADD_already_present_attrdesc = [ (self.mock_ldap.MOD_ADD, 'description', 'but not all users on the entire internet', ), ]
-        eq_((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_ADD_already_present_attrdesc))
+        self.assertEqual((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_ADD_already_present_attrdesc))
 
         self.assertEqual(self.mock_ldap.directory["cn=users,ou=groups,dc=30loops,dc=net"],
             {
@@ -103,7 +99,7 @@ class TestLdapOperations(unittest.TestCase):
         )
 
         modlist_MOD_DELETE_entire_attrdesc = [ (self.mock_ldap.MOD_DELETE, 'description', None, ), ]
-        eq_((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_DELETE_entire_attrdesc))
+        self.assertEqual((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_DELETE_entire_attrdesc))
 
         self.assertEqual(self.mock_ldap.directory["cn=users,ou=groups,dc=30loops,dc=net"],
             {
@@ -113,7 +109,7 @@ class TestLdapOperations(unittest.TestCase):
         )
 
         modlist_MOD_DELETE_one_value = [ (self.mock_ldap.MOD_DELETE, 'memberUid', 'jack', ), ]
-        eq_((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_DELETE_one_value))
+        self.assertEqual((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_DELETE_one_value))
 
         self.assertEqual(self.mock_ldap.directory["cn=users,ou=groups,dc=30loops,dc=net"],
             {
@@ -123,7 +119,7 @@ class TestLdapOperations(unittest.TestCase):
         )
 
         modlist_MOD_DELETE_several_values = [ (self.mock_ldap.MOD_DELETE, 'memberUid', ['john', 'sam', 'ben'], ), ]
-        eq_((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_DELETE_several_values))
+        self.assertEqual((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_DELETE_several_values))
 
         self.assertEqual(self.mock_ldap.directory["cn=users,ou=groups,dc=30loops,dc=net"],
             {
@@ -133,7 +129,7 @@ class TestLdapOperations(unittest.TestCase):
         )
 
         modlist_MOD_REPLACE_all_different = [ (self.mock_ldap.MOD_REPLACE, 'memberUid', ['wilhelm', 'bernd', 'karl'], ), ]
-        eq_((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_REPLACE_all_different))
+        self.assertEqual((103,[]), self.mock_ldap.modify_s("cn=users,ou=groups,dc=30loops,dc=net", modlist_MOD_REPLACE_all_different))
 
         self.assertEqual(self.mock_ldap.directory["cn=users,ou=groups,dc=30loops,dc=net"],
             {
