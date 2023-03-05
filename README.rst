@@ -17,15 +17,23 @@ taken from Peter Sagerson's excellent django-auth-ldap_ module.
 Installation
 ============
 
-Get and install the code::
+Install the latest release from PyPI::
+
+    $ pip install fakeldap
+
+Running tests in development
+============================
+If you've cloned the repository locally::
 
     $ git clone git://github.com/zulip/fakeldap.git
-    $ cd fakeldap
-    $ python setup.py install
 
-If you want, you can run the tests::
+and made changes, ensure you have ``pytest`` installed::
 
-    $ python setup.py nosetests
+    $ pip install pytest
+
+and you can run the tests with::
+
+    $ pytest tests.py
 
 Usage
 =====
@@ -34,7 +42,7 @@ Usage
 
     This code is still experimental and not very tested as of yet. So is the
     documentation
-    
+
 The ``MockLDAP`` class replaces the ``LDAPObject`` of the python-ldap module.
 The easiest way to use it, is to overwrite ``ldap.initialize`` to return
 ``MockLDAP`` instead of ``LDAPObject``. The example below uses Michael Foord's
@@ -92,7 +100,7 @@ This is an example how to use ``MockLDAP`` with fixed return values::
 
         # assert that the return value of your method and of the MockLDAP
         # are as expected, here using python-nose's eq() test tool:
-        eq_(return_value, result)
+        self.assertEqual(return_value, result)
 
         # Each actual ldap call your software makes gets recorded. You could
         # prepare a list of calls that you expect to be issued and compare it:
@@ -110,7 +118,7 @@ This is an example how to use ``MockLDAP`` with fixed return values::
                 ]}))
 
         # And again test the expected behaviour
-        eq_(called_records, _mock_ldap.ldap_methods_called_with_arguments())
+        self.assertEqual(called_records, _mock_ldap.ldap_methods_called_with_arguments())
 
 Besides of fixing return values for specific calls, you can also imitate a full
 ldap server with a directory of entries::
@@ -121,14 +129,14 @@ ldap server with a directory of entries::
                 "userPassword": "ldaptest"
         }
     }
-    mock_ldap = MockLDAP(tree) 
+    mock_ldap = MockLDAP(tree)
 
     record = [
         ('uid', 'crito'),
         ('userPassword', 'secret'),
     ]
     # The return value I expect when I add another record to the directory
-    eq_(
+    self.assertEqual(
         (105,[],1,[]),
         mock_ldap.add_s("uid=crito,ou=people,dc=30loops,dc=net", record)
     )
@@ -140,6 +148,6 @@ ldap server with a directory of entries::
             "uid": "crito", "userPassword": "secret"}
     }
     # Compare the expected directory with the MockLDAP directory
-    eq_(directory, mock_ldap.directory)
+    self.assertEqual(directory, mock_ldap.directory)
 
 .. _Mock: http://www.voidspace.org.uk/python/mock/
