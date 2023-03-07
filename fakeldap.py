@@ -419,7 +419,7 @@ class MockLDAP(object):
             simple_query_regex = r"\(\w+=.+\)$"  # matches things like (some_attribute=value)
             r_simple = re.compile(simple_query_regex)
 
-            anding_query_regex = r"\(\&(\(\w+=[A-Za-z0-9_\@\.]+\))+\)$"  # matches things like (&(some_attribute=value)(other_attr=othervalue)), but with any number of "anded" conditions
+            anding_query_regex = r"\(\&(\(\w+=[A-Za-z0-9_\@\.=,]+\))+\)$"  # matches things like (&(some_attribute=value)(other_attr=othervalue)), but with any number of "anded" conditions
             r_anded = re.compile(anding_query_regex)
 
             if r_simple.match(filterstr) is not None:
@@ -427,7 +427,7 @@ class MockLDAP(object):
                 return self._multiple_attrs_onelevel_search(base, [(search_attr_name, search_attr_value)])
             elif r_anded.match(filterstr) is not None:
                 bracketList = filterstr[3:-2] # cut of the `(&(` and `))` --> attr1=val1)(attr2=val2
-                attrs_conditions = [tuple(condition.split("=")) for condition in bracketList.split(")(")]
+                attrs_conditions = [tuple(condition.split("=", 1)) for condition in bracketList.split(")(")]
                 return self._multiple_attrs_onelevel_search(base, attrs_conditions)
             else:
                 raise self.PresetReturnRequiredError('search_s("%s", %d, "%s", "%s", %d)' %

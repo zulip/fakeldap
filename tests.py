@@ -145,6 +145,7 @@ class TestLdapOperations(unittest.TestCase):
     def test_search_s_onelevel(self):
         directory = {
             "ou=users,dc=30loops,dc=net": { "ou": "users" },
+            "ou=groups,dc=30loops,dc=net": { "ou": "groups" },
             "cn=admin,ou=users,dc=30loops,dc=net": {
                     "userPassword": "ldaptest"
                     },
@@ -160,6 +161,10 @@ class TestLdapOperations(unittest.TestCase):
             "cn=john2,ou=users,dc=30loops,dc=net": {
                     "userPassword": "ldaptest",
                     "mail": "john@example.com"  # same mail as john
+                    },
+            "cn=group1,ou=groups,dc=30loops,dc=net": {
+                    "objectClass": "groupOfUniqueNames",
+                    "uniqueMember": "cn=john2,ou=users,dc=30loops,dc=net"
                     }
         }
         self.mock_ldap = MockLDAP(directory)
@@ -203,5 +208,14 @@ class TestLdapOperations(unittest.TestCase):
         )
         self.assertIn(
             ('cn=john2,ou=users,dc=30loops,dc=net',{'mail': 'john@example.com', 'userPassword': 'ldaptest'}),
+            result
+        )
+
+        # search for both johns using anded conditions:
+        result = self.mock_ldap.search_s("ou=groups,dc=30loops,dc=net", ldap.SCOPE_ONELEVEL,
+                                          "(&(objectClass=groupOfUniqueNames)(uniqueMember=cn=john2,ou=users,dc=30loops,dc=net))")
+
+        self.assertIn(
+            ('cn=group1,ou=groups,dc=30loops,dc=net',{'objectClass': 'groupOfUniqueNames', 'uniqueMember': 'cn=john2,ou=users,dc=30loops,dc=net'}),
             result
         )
