@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+## [0.6.6] - 2024-05-30
+### Changed
+- Fix a bug involving usage of `=` in a basic search_s with the `&` operator.
+- Replace `nose` with `pytest`
+- Eliminate legacy `setup.py` based build configuration in favor of modern
+  `pyproject.toml`
+
 ## [0.6.5] - 2024-03-02
 ### Changed
 - Add support for a basic search_s with the `&` operator.

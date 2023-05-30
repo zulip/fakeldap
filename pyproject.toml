@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fakeldap"
-version = "0.6.5"
+version = "0.6.6"
 authors = [{ name = "Christo Buschek", email = "crito@30loops.net" }]
 description = "An implementation of a LDAPObject to fake a ldap server in unittests."
 readme = "README.rst"
